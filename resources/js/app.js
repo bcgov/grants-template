@@ -18,8 +18,16 @@ createInertiaApp({
         let parts = name.split('::')
         let type = false;
         if (parts.length > 1) type = parts[0]
-        if(type) return require(`${__dirname}/../../Modules/${type}/resources/assets/js/Pages/${parts[1]}.vue`).default
-        return require(`${__dirname}/./Pages/${name}.vue`).default
+
+        if(type) {
+            // For module pages - use require.context to bundle all module Vue files
+            const pages = require.context('../../Modules/', true, /Pages\/.*\.vue$/i);
+            return pages(`./${type}/resources/assets/js/Pages/${parts[1]}.vue`).default;
+        }
+
+        // For app pages - use require.context to bundle all Vue files in Pages directory
+        const pages = require.context('./Pages', true, /\.vue$/i);
+        return pages(`./${name}.vue`).default;
     },
     setup({ el, App, props, plugin }) {
         const app = createApp({ render: () => h(App, props) })
